@@ -1,0 +1,54 @@
+
+# other files
+links.txt
+
+
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+venv310/
+ENV/
+env/
+.venv/
+
+# other folders
+questions/
+
+# Jupyter Notebook checkpoints (if used for dev)
+.ipynb_checkpoints/
+
+# MacOS / Windows system files
+.DS_Store
+Thumbs.db
+
+# dotenv for local secrets
+.env
+
+# Vercel build artifacts (just to be safe)
+.vercel/
+
+# VSCode settings (optional)
+.vscode/
+
+# Output files
+*.log
+*.out
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.svg
+*.pdf
+
+# Data or temp files
+*.csv
+*.parquet
+*.zip
+*.tar.gz
+*.db
+*.sqlite
+
