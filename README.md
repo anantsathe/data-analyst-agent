@@ -1,3 +1,14 @@
+---
+title: Data Analyst Agent
+emoji: 📊
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+pinned: false
+license: mit
+app_port: 7860
+---
+
 # Data Analyst Agent
 
 An API-driven data analyst powered by LLMs that can source, clean, analyze, and visualize any data.
@@ -160,4 +171,5 @@ Supporting additional plot formats or output types.
 Integrating alternative LLMs or execution sandboxes.
 
 Contact & Credits
+
 Developed with the vision of making intelligent, LLM-powered data analysis accessible and evaluable through a simple API interface.
