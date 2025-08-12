@@ -14,3 +14,4 @@ lxml==4.9.3
 html5lib==1.1
 openpyxl==3.1.2
 mangum==0.17.0
+pydantic>=2.0.0,<3.0.0
