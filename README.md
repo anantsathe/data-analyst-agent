@@ -1,175 +1,155 @@
 ---
-title: Data Analyst Agent
-emoji: 📊
-colorFrom: indigo
-colorTo: blue
-sdk: docker
-pinned: false
-license: mit
-app_port: 7860
+title: "Data Analyst Agent"
+thumbnail: "🧠"
+emoji: "📊"
+colorFrom: "indigo"
+colorTo: "blue"
+sdk: "docker"
+app_file: "main.py"
+license: "mit"
+tags:
+  - fastapi
+  - data-analysis
+  - python
+  - agent
+  - docker
+  - huggingface
+  - api
+model: ""
+space_holder: true
 ---
 
-# Data Analyst Agent
 
-An API-driven data analyst powered by LLMs that can source, clean, analyze, and visualize any data.
 
----
+# 🧠 Data Analyst Agent - FastAPI
 
-##  Overview
+This is a **FastAPI-based Data Analyst Agent** that can perform **data analysis, web scraping, and visualization** through API calls.  
+It integrates with **Anthropic Claude** for automated Python code generation and executes the code securely.
 
-- This project exposes a single API endpoint—e.g., `https://app.example.com/api/`—to handle data analysis tasks via POST requests.
-- You submit a `questions.txt` file containing your analysis task along with optional data attachments (`.csv`, `.json`, images, etc.).
-- The agent processes your request using LLM-generated Python code and returns results—numeric answers, JSON objects, or visualizations—within 3 minutes.
+The app is designed for deployment on **[Hugging Face Spaces](https://huggingface.co/spaces)** using **Docker**.
 
 ---
 
-##  API Usage
+## 🚀 Features
+- **Web scraping** with `requests` + `BeautifulSoup`
+- **Data analysis** with `pandas` & `duckdb`
+- **Visualizations** with `matplotlib`, `seaborn`, and `plotly`
+- **File uploads** for CSV, JSON, TXT datasets
+- **Automated Python code generation via Claude**
+- **CORS enabled** for web integration
+- API response formats support JSON, images (Base64), or text
 
-Send requests like this:
+---
 
-```bash
-curl "https://app.example.com/api/" \
-  -F "questions.txt=@question.txt" \
-  -F "image.png=@image.png" \
-  -F "data.csv=@data.csv"
-questions.txt: Always required, contains the instructions or questions.
+## 📂 Project Structure
+├── main.py # FastAPI app entry point
+├── claude_client.py # Claude API integration
+├── code_executor.py # User Python code execution environment
+├── requirements.txt # Python dependencies
+├── Dockerfile # Hugging Face Docker deployment file
+├── .env # Local environment secrets (ignored in git)
+└── README.md # Documentation (this file)
 
-Optional attachments: Any number of files such as .csv, .json, or image files.
+---
 
-Responses must be delivered within 3 minutes in the requested format.
+## ⚡ Local Development
 
-Example Tasks
-Example 1 (question-1.txt):
-Scrape the list of highest-grossing films from Wikipedia and answer:
-
-Number of movies that made ≥ $2 bn before 2000.
-
-Earliest movie with > $1.5 bn revenue.
-
-Correlation between “Rank” and “Peak”.
-
-Scatterplot with a dotted red regression line (base64 PNG, <100 kB).
-
-Sample Response:
-
-
-[1, "Titanic", 0.485782, "data:image/png;base64,iVBORw0KG..."]
-Example 2 (question-2.txt):
-Analyze an Indian High Court judgments dataset (~16M records, 1 TB), including:
-
-Which high court disposed the most cases from 2019–2022?
-
-Regression slope of registration-to-decision delay by year for court 33_10.
-
-Scatterplot of year vs. delay days (base64 under 100k characters).
-
-Expected JSON Response:
-
-
-{
-  "Which high court disposed the most cases from 2019 - 2022?": "...",
-  "What's the regression slope of the date_of_registration - decision_date by year in the court=33_10?": "...",
-  "Plot the year and # of days of delay ...": "data:image/webp;base64,..."
-}
-Evaluation Workflow (using promptfoo)
-
-description: "TDS Data Analyst Agent – generic eval (20-point rubric)"
-
-providers:
-  - id: https
-    config:
-      url: https://app.example.com/api/
-      method: POST
-      body: file://question.txt
-      transformResponse: json
-
-assert:
-  - type: is-json
-    value: {type: array, minItems: 4, maxItems: 4}
-    weight: 0
-  - type: python
-    weight: 4
-    value: |
-      import json
-      print(json.loads(output)[0] == 1)
-  - type: python
-    weight: 4
-    value: |
-      import json, re
-      print(bool(re.search(r'titanic', json.loads(output)[1], re.I)))
-  - type: python
-    weight: 4
-    value: |
-      import json
-      print(abs(float(json.loads(output)[2]) - 0.485782) <= 0.001)
-  - type: llm-rubric
-    provider: openai:gpt-4.1-nano
-    weight: 8
-    preprocess: |
-      import json
-      data = json.loads(output)
-      context['plot'] = data[3]
-    rubricPrompt: |
-      [
-        { "role": "system", "content": "Grade the scatterplot. Award score 1 only if ALL are true: (a) it's a scatterplot of Rank vs Peak; (b) red dotted regression line; (c) axes visible & labelled; (d) file size < 100 kB. Otherwise score 0." },
-        { "role": "user", "content": [{ "type": "image_url", "image_url": { "url": "{{plot}}" } }, { "type": "text", "text": "Here is the original task:\n\n{{vars.question}}\n\nReview the image and JSON above." }] }
-      ]
-    threshold: 0.99
-
-tests:
-  - description: "Data analysis"
-Your final grade equals the score returned by promptfoo—no scaling, no normalization.
-
-Project Structure
-
-data-analyst-agent/
-├── api/
-│   └── main.py
-├── requirements.txt
-├── .env
-├── claude_client.py
-├── code_executor.py
-└── vercel.json
-main.py
-Built with FastAPI to handle file uploads and return JSON.
-
-Implements a self-correction loop: it calls Claude to generate Python code, executes it (via code_executor.py), and retries up to 3 times if errors occur.
-
-Ensures modular execution, temporary file handling, and robust error reporting.
-
-Features & Guidelines
-LLM-powered code generation: Uses Claude to generate python code based only on prompt and context.
-
-Strict format control: Responses inside final_answer, with no extra text.
-
-Data cleaning: Handles currency symbols, commas, non-numeric strings via regex and safe conversions.
-
-Visual output constraints: Base64 images in specified formats, size-limited (<100 kB or characters).
-
-Retry logic: 3 attempts for robust execution; detailed errors returned after failures.
-
-Full dependency isolation: Imports controlled libraries only; runs in temp directories per request.
-
-Installation & Deployment
-Clone this repo.
-
-Copy .env.example to .env and supply Claude / LLM credentials.
-
-Install dependencies:
-
-
+### 1️⃣ Install dependencies
 pip install -r requirements.txt
-Deploy using Vercel (supported via vercel.json) or host anywhere compatible with FastAPI.
 
-Contributing
-Enhancements welcome! Suggestions include:
+### 2️⃣ Run the app
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
-Adding more robust data sources or cleaning routines.
+Then visit:
+- **Swagger Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Health Check**: [http://localhost:8000/health](http://localhost:8000/health)
 
-Supporting additional plot formats or output types.
+---
 
-Integrating alternative LLMs or execution sandboxes.
+## 🌐 Deploying to Hugging Face Spaces (Docker)
 
-Contact & Credits
+Hugging Face Spaces requires apps to listen on **port 7860** for Docker-based deployments.
 
-Developed with the vision of making intelligent, LLM-powered data analysis accessible and evaluable through a simple API interface.
+### 1️⃣  `requirements.txt`
+
+---
+
+### 2️⃣ `Dockerfile`
+
+**Important:** Port **7860** is required on Hugging Face Docker Spaces.
+
+---
+
+## 📡 API Endpoints
+
+https://assathe-data-analyst-agent2.hf.space/
+to check the root status.
+
+https://assathe-data-analyst-agent2.hf.space/health
+for the health endpoint.
+
+https://assathe-data-analyst-agent2.hf.space/docs
+for the Swagger docs and API playground 
+
+
+### `POST /api/`
+curl -X POST "https://assathe-data-analyst-agent2.hf.space/api/" \
+  -F "questions=@questions.txt" \
+  -F "files=@edges.csv" # (optional)
+
+Send a question and optional files for analysis.
+- **Form fields**:
+  - `questions` → text file containing the question
+  - `files` → one or more data files (CSV, JSON, TXT)
+- **Returns**: JSON with results or Base64-encoded image
+
+Example:
+curl -X POST "https://assathe-data-analyst-agent2.hf.space/api/" \
+-F "questions=@question.txt"
+-F "files=@data.csv # (optional)
+
+---
+
+### `GET /health`
+[Detailed health probe.](https://assathe-data-analyst-agent2.hf.space/health
+for the health endpoint.)
+
+---
+
+## 🔑 Environment Variables
+In your `.env` or Hugging Face Secrets panel:
+- `CLAUDE_API_KEY` → Your Anthropic Claude API key
+- Any other secrets needed for custom integrations
+
+---
+
+## 🛠 Troubleshooting
+- **Build failure**: Check Docker build logs in Hugging Face Spaces.
+- **Missing modules**: Ensure all dependencies are in `requirements.txt`.
+- **Port issues**: Ensure Dockerfile runs on port **7860**.
+- **Claude API errors**: Verify `CLAUDE_API_KEY` is set correctly in Hugging Face secrets.
+
+---
+
+## 🤝 Contributing
+Pull requests are welcome. Please ensure:
+- **Code is tested locally**
+- **Dependencies are updated in `requirements.txt`**
+- **Secrets are never committed to the repo**
+
+---
+
+## 📜 License
+MIT License 
+
+---
+
+## 📌 Notes for Hugging Face Deployment
+- Create a **new Space** and select **Docker** as SDK  
+- Push the repo with `git push` to the provided Space repo link  
+- Set **Secrets** in the Space settings (e.g., `CLAUDE_API_KEY`)  
+- Hugging Face will automatically build and start the container
+
+
+
+
